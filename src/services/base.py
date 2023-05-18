@@ -2,6 +2,7 @@ import uuid
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.encoders import jsonable_encoder
 
@@ -13,6 +14,9 @@ from schemas.base import CreateShortUrl
 class Repository:
 
     def get(self, *args, **kwargs):
+        raise NotImplementedError
+    
+    def get_or_create(self, *args, **kwargs):
         raise NotImplementedError
 
     def get_multi(self, *args, **kwargs):
@@ -40,13 +44,15 @@ class RepositoryDB(Repository, Generic[ModelType, CreateSchemaType]):
     
 
 class RepositoryShortUrl(RepositoryDB[Url, CreateShortUrl]):
-    async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> Url:
+    async def get_or_create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> Url:
         url_dict: dict = jsonable_encoder(obj_in)
-        print(url_dict)
         original_url: str = url_dict.get('url')
         if not original_url:
             raise Exception
-
+        
+        db_obj: Optional[Url] = await self.get(db=db, original_url=original_url)
+        if db_obj:
+            return db_obj
 
         url = {
             'original_url': original_url,
@@ -58,6 +64,17 @@ class RepositoryShortUrl(RepositoryDB[Url, CreateShortUrl]):
         await db.commit()
         await db.refresh(db_obj)
         return db_obj
+    
+
+    async def get(self, db: AsyncSession, id: Optional[int] = None, original_url: Optional[str] = None) -> Optional[Url]:
+        if not id and not original_url:
+            raise Exception
+        if id:
+            statement = select(self._model).where(self._model.id == id)
+        if original_url:
+            statement = select(self._model).where(self._model.original_url == original_url)
+        results = await db.execute(statement=statement)
+        return results.scalar_one_or_none()
 
 
 url_crud = RepositoryShortUrl(Url) 

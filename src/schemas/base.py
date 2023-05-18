@@ -13,9 +13,9 @@ class CreateShortUrl(BaseModel):
     url: str
 
 
-class ReadShortUrl(BaseModel):
-    short_url: str
+class ShortUrlStatic(ShortUrl):
+    use: int
+
+    
 
 
-# class ReadShortUrlStats(BaseModel):
-#     short_url: str
