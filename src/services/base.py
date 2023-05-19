@@ -46,20 +46,15 @@ class RepositoryDB(Repository, Generic[ModelType, CreateSchemaType]):
 class RepositoryShortUrl(RepositoryDB[Url, CreateShortUrl]):
     async def get_or_create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> Url:
         url_dict: dict = jsonable_encoder(obj_in)
-        original_url: str = url_dict.get('url')
+        original_url: str = url_dict.get('original_url')
         if not original_url:
             raise Exception
         
         db_obj: Optional[Url] = await self.get(db=db, original_url=original_url)
         if db_obj:
-            return db_obj
+            return db_obj   
 
-        url = {
-            'original_url': original_url,
-            'short_url': uuid.uuid4().hex[:10],
-        }    
-
-        db_obj = self._model(**url)
+        db_obj = self._model(**url_dict)
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)

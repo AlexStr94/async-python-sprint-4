@@ -9,7 +9,7 @@ from core.logger import LOGGING
 logging_config.dictConfig(LOGGING)
 
 PROJECT_NAME = os.getenv('PROJECT_NAME', 'UrlShortener')
-PROJECT_HOST = os.getenv('PROJECT_HOST', '0.0.0.0')
+PROJECT_HOST = os.getenv('PROJECT_HOST', '127.0.0.1')
 PROJECT_PORT = int(os.getenv('PROJECT_PORT', '8000'))
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__name__)))
