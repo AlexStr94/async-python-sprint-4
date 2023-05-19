@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,11 @@ SHORT_URL_PATTERN = f'http://{PROJECT_HOST}:{PROJECT_PORT}/api/v1/'
 router = APIRouter()
 
 
-@router.post('/', response_model=schema.ShortUrlWithOrigin, status_code=status.HTTP_201_CREATED)
+@router.post(
+    '/',
+    response_model=schema.ShortUrlWithOrigin,
+    status_code=status.HTTP_201_CREATED
+)
 async def create_short_url(
     url_in: schema.CreateShortUrl,
     db: AsyncSession = Depends(get_session),
@@ -25,12 +29,18 @@ async def create_short_url(
     }
 
 
-@router.post('/shorten/', response_model=List[schema.ShortUrlWithId], status_code=status.HTTP_201_CREATED)
+@router.post(
+    '/shorten/',
+    response_model=List[schema.ShortUrlWithId],
+    status_code=status.HTTP_201_CREATED
+)
 async def bulk_create_short_url(
     urls_in: List[schema.CreateShortUrl],
     db: AsyncSession = Depends(get_session),
 ) -> list:
-    url_objects = [await url_crud.get_or_create(db=db, obj_in=url) for url in urls_in]
+    url_objects = [
+        await url_crud.get_or_create(db=db, obj_in=url) for url in urls_in
+    ]
     result = [
         {'short_id': url.id, 'short_url': f'{SHORT_URL_PATTERN}{url.id}'} for url in url_objects
     ]
@@ -44,9 +54,6 @@ async def get_original_url(
     id: int,
     response: Response
 ) -> None:
-    """
-    Get by ID.
-    """
     url: Optional[Url] = await url_crud.get(db=db, id=id)
     if not url:
         raise HTTPException(
@@ -65,7 +72,7 @@ async def get_url_statistic(
     *,
     db: AsyncSession = Depends(get_session),
     id: int
-) -> Any:
+) -> dict:
     """
     Get by ID.
     """

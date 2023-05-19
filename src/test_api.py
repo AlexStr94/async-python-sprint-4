@@ -7,6 +7,7 @@ from core import config
 from db.db import Base, get_session
 from main import app
 
+
 SQLALCHEMY_DATABASE_URL = 'postgresql+asyncpg://postgres:postgres@localhost:5433/postgres'
 TEST_URL_1 = 'https://ya.ru/'
 TEST_URL_2 = 'https://yandex.ru/'
@@ -25,7 +26,9 @@ async def override_get_session() -> AsyncSession:
     async with async_session() as session:
         yield session
 
+
 app.dependency_overrides[get_session] = override_get_session
+
 
 @pytest.fixture()
 def get_client():

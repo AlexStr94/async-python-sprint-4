@@ -1,5 +1,4 @@
-import uuid
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Generic, Optional, Type, TypeVar
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -40,11 +39,12 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 class RepositoryDB(Repository, Generic[ModelType, CreateSchemaType]):
     def __init__(self, model: Type[ModelType]):
         self._model = model 
-
-    
+ 
 
 class RepositoryShortUrl(RepositoryDB[Url, CreateShortUrl]):
-    async def get_or_create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> Url:
+    async def get_or_create(
+            self, db: AsyncSession, *, obj_in: CreateSchemaType
+        ) -> Url:
         url_dict: dict = jsonable_encoder(obj_in)
         original_url: str = url_dict.get('original_url')
         if not original_url:
@@ -61,13 +61,19 @@ class RepositoryShortUrl(RepositoryDB[Url, CreateShortUrl]):
         return db_obj
     
 
-    async def get(self, db: AsyncSession, id: Optional[int] = None, original_url: Optional[str] = None) -> Optional[Url]:
+    async def get(
+            self,
+            db: AsyncSession,
+            id: Optional[int] = None,
+            original_url: Optional[str] = None
+        ) -> Optional[Url]:
         if not id and not original_url:
             raise Exception
         if id:
             statement = select(self._model).where(self._model.id == id)
         if original_url:
-            statement = select(self._model).where(self._model.original_url == original_url)
+            statement = select(self._model) \
+                        .where(self._model.original_url == original_url)
         results = await db.execute(statement=statement)
         return results.scalar_one_or_none()
 
