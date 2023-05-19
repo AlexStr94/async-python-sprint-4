@@ -1,10 +1,10 @@
 import uuid
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.encoders import jsonable_encoder
 
 from db.db import Base
 from models.base import Url

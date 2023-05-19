@@ -1,12 +1,11 @@
 import pytest
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-
 from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from db.db import get_session
-from main import app
+
 from core import config
-from db.db import Base
+from db.db import Base, get_session
+from main import app
 
 SQLALCHEMY_DATABASE_URL = 'postgresql+asyncpg://postgres:postgres@localhost:5433/postgres'
 TEST_URL_1 = 'https://ya.ru/'

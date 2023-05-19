@@ -5,7 +5,6 @@ from pydantic import BaseSettings, PostgresDsn
 
 from core.logger import LOGGING
 
-
 logging_config.dictConfig(LOGGING)
 
 PROJECT_NAME = os.getenv('PROJECT_NAME', 'UrlShortener')

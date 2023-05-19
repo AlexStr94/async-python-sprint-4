@@ -1,4 +1,5 @@
-from sqlalchemy import Column, DateTime, ForeignKey, func, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
+
 # Импортируем базовый класс для моделей.
 from db.db import Base
 

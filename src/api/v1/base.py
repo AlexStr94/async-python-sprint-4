@@ -2,8 +2,8 @@ from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.config import PROJECT_HOST, PROJECT_PORT
 
+from core.config import PROJECT_HOST, PROJECT_PORT
 from db.db import get_session
 from models.base import Url
 from schemas import base as schema
