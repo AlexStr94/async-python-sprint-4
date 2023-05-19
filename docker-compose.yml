@@ -10,6 +10,20 @@ services:
       - '5432:5432'
     volumes: 
       - db:/var/lib/postgresql/data
+  test-db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=url_shortener
+    ports:
+      - '5433:5432'
+    volumes: 
+      - test-db:/var/lib/postgresql/data
+
 volumes:
   db:
+    driver: local
+  test-db:
     driver: local

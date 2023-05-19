@@ -25,8 +25,8 @@ async def create_short_url(
     }
 
 
-@router.post('/shorten', response_model=List[schema.ShortUrlWithId], status_code=status.HTTP_201_CREATED)
-async def create_short_url(
+@router.post('/shorten/', response_model=List[schema.ShortUrlWithId], status_code=status.HTTP_201_CREATED)
+async def bulk_create_short_url(
     urls_in: List[schema.CreateShortUrl],
     db: AsyncSession = Depends(get_session),
 ) -> list:
