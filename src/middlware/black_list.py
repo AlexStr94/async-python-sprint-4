@@ -1,19 +1,26 @@
-from fastapi import HTTPException, Request, status
+from fastapi import Request, status
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 
-BLACK_LIST = [
-    # "127.0.0.1",
-    "56.24.15.106"
-]
+from fastapi.responses import JSONResponse
 
-async def check_allowed_ip(request: Request):
-    def is_ip_banned(headers):
-        is_banned = False
-        try:
-            real_ip = headers["X-REAL-IP"]
-            is_banned = real_ip in BLACK_LIST
-        except KeyError:
-            is_banned = False # Можно исправить на True, но локально не потестишь
-        return is_banned
+class BlackListMiddleware(BaseHTTPMiddleware):
+    def __init__(
+            self,
+            app: ASGIApp,
+            black_list: list,
+    ) -> None:
+        super().__init__(app)
+        self.black_list = black_list
 
-    if is_ip_banned(request.headers):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    async def dispatch(self, request: Request, call_next):
+        ip = request.headers.get('X-REAL-IP')
+        if ip in self.black_list:
+            return JSONResponse(
+                {'error': 'access denied'},
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        response = await call_next(request)
+        
+        return response

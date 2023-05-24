@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.db import Base
+from exceptions.base import FieldError
 from models.base import Url
 from schemas.base import CreateShortUrl
 
@@ -48,7 +49,7 @@ class RepositoryShortUrl(RepositoryDB[Url, CreateShortUrl]):
         url_dict: dict = jsonable_encoder(obj_in)
         original_url: str = url_dict.get('original_url')
         if not original_url:
-            raise Exception
+            raise FieldError(field='original_url')
         
         db_obj: Optional[Url] = await self.get(db=db, original_url=original_url)
         if db_obj:
@@ -68,7 +69,7 @@ class RepositoryShortUrl(RepositoryDB[Url, CreateShortUrl]):
             original_url: Optional[str] = None
         ) -> Optional[Url]:
         if not id and not original_url:
-            raise Exception
+            raise FieldError(field='id or original_url')
         if id:
             statement = select(self._model).where(self._model.id == id)
         if original_url:

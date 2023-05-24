@@ -3,12 +3,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from core import config
+from core.config import app_settings
 from db.db import Base, get_session
 from main import app
 
 
-SQLALCHEMY_DATABASE_URL = 'postgresql+asyncpg://postgres:postgres@localhost:5433/postgres'
+SQLALCHEMY_DATABASE_URL = 'postgresql+asyncpg://test:test@localhost:5432/test'
 TEST_URL_1 = 'https://ya.ru/'
 TEST_URL_2 = 'https://yandex.ru/'
 
@@ -30,7 +30,7 @@ async def override_get_session() -> AsyncSession:
 app.dependency_overrides[get_session] = override_get_session
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def get_client():
     client = TestClient(app)
     return client
@@ -40,11 +40,11 @@ def test_url_creation(get_client):
     data = {
         'original_url': TEST_URL_1
     }
-    response = get_client.post('/api/v1/', json=data)
+    response = get_client.post(app.url_path_for('create_short_url'), json=data)
 
     assert response.status_code == 201
     response_message = {
-        'short_url': f'http://{config.PROJECT_HOST}:{config.PROJECT_PORT}/api/v1/1',
+        'short_url': f'{app_settings.short_url_pattern}1',
         'original_url': TEST_URL_1
     }
     assert response.json() == response_message
@@ -60,16 +60,18 @@ def test_bulk_creation(get_client):
         }
     ]
 
-    response = get_client.post('/api/v1/shorten', json=data)
+    response = get_client.post(
+        app.url_path_for('bulk_create_short_url'), json=data
+    )
     
     assert response.status_code == 201
     response_message = [
         {
-            'short_url': f'http://{config.PROJECT_HOST}:{config.PROJECT_PORT}/api/v1/1',
+            'short_url': f'{app_settings.short_url_pattern}1',
             'short_id': 1
         },
         {
-            'short_url': f'http://{config.PROJECT_HOST}:{config.PROJECT_PORT}/api/v1/2',
+            'short_url': f'{app_settings.short_url_pattern}2',
             'short_id': 2
         }
     ]

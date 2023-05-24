@@ -3,13 +3,13 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import PROJECT_HOST, PROJECT_PORT
+from core.config import app_settings
 from db.db import get_session
 from models.base import Url
 from schemas import base as schema
 from services.base import url_crud
 
-SHORT_URL_PATTERN = f'http://{PROJECT_HOST}:{PROJECT_PORT}/api/v1/'
+SHORT_URL_PATTERN = app_settings.short_url_pattern
 router = APIRouter()
 
 
@@ -21,12 +21,12 @@ router = APIRouter()
 async def create_short_url(
     url_in: schema.CreateShortUrl,
     db: AsyncSession = Depends(get_session),
-) -> dict:
+) -> schema.ShortUrlWithOrigin:
     url: Url = await url_crud.get_or_create(db=db, obj_in=url_in)
-    return {
-        'short_url': f'{SHORT_URL_PATTERN}{url.id}',
-        'original_url': url.original_url
-    }
+    return schema.ShortUrlWithOrigin(
+        short_url=f'{SHORT_URL_PATTERN}{url.id}',
+        original_url=url.original_url
+    )
 
 
 @router.post(
@@ -37,12 +37,15 @@ async def create_short_url(
 async def bulk_create_short_url(
     urls_in: List[schema.CreateShortUrl],
     db: AsyncSession = Depends(get_session),
-) -> list:
+) -> List[schema.ShortUrlWithId]:
     url_objects = [
         await url_crud.get_or_create(db=db, obj_in=url) for url in urls_in
     ]
     result = [
-        {'short_id': url.id, 'short_url': f'{SHORT_URL_PATTERN}{url.id}'} for url in url_objects
+        schema.ShortUrlWithId(
+            short_id=url.id,
+            short_url=f'{SHORT_URL_PATTERN}{url.id}'
+        ) for url in url_objects
     ]
     return result
 
@@ -72,10 +75,7 @@ async def get_url_statistic(
     *,
     db: AsyncSession = Depends(get_session),
     id: int
-) -> dict:
-    """
-    Get by ID.
-    """
+) -> schema.ShortUrlStatic:
     url: Optional[Url] = await url_crud.get(db=db, id=id)
     if not url:
         raise HTTPException(
@@ -83,9 +83,9 @@ async def get_url_statistic(
             detail=f'Url with {id} not found'
         )
     
-    return {
-        'short_url': f'{SHORT_URL_PATTERN}{url.id}',
-        'original_url': url.original_url,
-        'use': url.number_of_use,
-    }
+    return schema.ShortUrlStatic(
+        short_url=f'{SHORT_URL_PATTERN}{url.id}',
+        original_url=url.original_url,
+        use=url.number_of_use,
+    )
     
