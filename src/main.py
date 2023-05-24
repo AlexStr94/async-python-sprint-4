@@ -1,3 +1,4 @@
+# Благодарю за ревью, Николай!
 import uvicorn
 from fastapi import FastAPI
 
